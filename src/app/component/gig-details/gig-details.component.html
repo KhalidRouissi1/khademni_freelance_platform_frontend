@@ -1,0 +1,53 @@
+@if(gig){
+
+    <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <h2 class="text-3xl font-semibold text-gray-800">{{ gig.title }}</h2>
+        <p class="text-gray-600 my-2">{{ gig.description }}</p>
+        <p class="text-xl text-gray-700">Price: ${{ gig.minPrice }} - ${{ gig.maxPrice }}</p>
+      
+        <!-- Application Form -->
+        <form (ngSubmit)="sendApplication()" class="mt-6 space-y-6">
+          <div>
+            <label for="coverLetter" class="block text-lg font-medium text-gray-700">Cover Letter</label>
+            <textarea
+              id="coverLetter"
+              [(ngModel)]="coverLetter"
+              name="coverLetter"
+              rows="4"
+              class="mt-2 p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Write your cover letter..."></textarea>
+          </div>
+      
+          <div>
+            <label for="resumeUrl" class="block text-lg font-medium text-gray-700">Resume URL</label>
+            <input
+              id="resumeUrl"
+              type="text"
+              [(ngModel)]="resumeUrl"
+              name="resumeUrl"
+              class="mt-2 p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your resume URL" />
+          </div>
+      
+          <div>
+            <label for="projectPhotoUrl" class="block text-lg font-medium text-gray-700">Project Photo URL</label>
+            <input
+              id="projectPhotoUrl"
+              type="text"
+              [(ngModel)]="projectPhotoUrl"
+              name="projectPhotoUrl"
+              class="mt-2 p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter project photo URL" />
+          </div>
+      
+          <button
+            type="submit"
+            class="mt-6 w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Send Application
+          </button>
+        </form>
+      </div>
+      
+}
+  

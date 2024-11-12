@@ -5,6 +5,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { OwnerComponent } from './components/owner/owner.component';
 import { GigDetailsComponent } from './components/gig-details/gig-details.component';
 import { RegisterComponent } from './components/register/register.component';
+import { VerifEmailComponent } from './components/verif-email/verif-email.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -12,5 +13,6 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'gigs', component: GigListComponent, canActivate: [AuthGuard] },
   { path: 'ownerspace', component: OwnerComponent, canActivate: [AuthGuard] },
+  { path: 'verifemail', component: VerifEmailComponent },
   { path: 'gigs/details/:id', component: GigDetailsComponent, canActivate: [AuthGuard] }
 ];

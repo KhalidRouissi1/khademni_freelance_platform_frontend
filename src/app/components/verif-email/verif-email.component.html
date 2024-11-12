@@ -1,0 +1,22 @@
+<div class="container mx-auto mt-5">
+    <div class="flex justify-center">
+        <div class="w-full md:w-1/3">
+            @if(err!=''){
+                <div class="alert bg-red-500 text-white font-bold p-4 rounded mb-4" >
+                    <strong>{{err}}</strong>
+                </div>
+            }
+        
+            <form>
+                <div class="txt_field mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Veuillez entrer le code envoyé par mail</label>
+                    <input type="text" name="code" [(ngModel)]="code" class="form-control w-full px-3 py-2 border border-gray-300 rounded"
+                        placeholder="Code de confirmation">
+                </div>
+                <button type="button" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mt-3" (click)="onValidateEmail()">
+                    S'inscrire
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

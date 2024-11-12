@@ -8,11 +8,13 @@ import { User } from '../model/User';
 import { UserLoginRequest } from '../model/UserLoginRequest';
 import { UserResponse } from '../model/UserResponse';
 import { UserRegistrationRequest } from '../model/UserRegistrationRequest';
+import { UserClass } from '../model/UserClass';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+ 
   private helper = new JwtHelperService();
   private apiURL: string = 'http://localhost:8888';
   private _token!: string;
@@ -21,7 +23,7 @@ export class AuthService {
   private _roles!: string[];
   private _currentUserSubject = new BehaviorSubject<UserResponse | null>(null);
   public currentUser$ = this._currentUserSubject.asObservable();
-
+  public regitredUser : UserClass = new UserClass();
   constructor(
     private router: Router,
     private http: HttpClient,
@@ -29,9 +31,22 @@ export class AuthService {
   ) {
     this.loadToken();
   }
-  register(user: UserRegistrationRequest):void{
-    console.log(user)
+
+
+  setRegistredUser(user : UserClass){
+    this.regitredUser=user;
+    }
+    getRegistredUser(){
+    return this.regitredUser;
+    }
+
+  register(user: UserRegistrationRequest){
+      return this.http.post<User>(this.apiURL+'/register',user,{observe:'response'})
   }
+  validateEmail(code : string){
+    return this.http.get<User>(this.apiURL+'/verifyEmail/'+code);
+    }
+
   login(user: UserLoginRequest): Observable<any> {
     return this.http.post<UserLoginRequest>(this.apiURL + '/login', user, { observe: 'response' }).pipe(
       switchMap((response) => {
@@ -60,9 +75,6 @@ export class AuthService {
     return this.currentUser$;
   }
 
-  /**
-   * Returns the current user, or null if the user is not logged in.
-   */
   getCurrentUser(): UserResponse | null {
     return this._currentUserSubject.value;
   }
@@ -89,7 +101,7 @@ export class AuthService {
       this._loggedUser = '';
       return;
     }
-  
+
     try {
       const decodedToken = this.helper.decodeToken(this._token);
       this._roles = decodedToken.roles;
@@ -100,6 +112,7 @@ export class AuthService {
       this._loggedUser = '';
     }
   }
+
   isAdmin(): boolean {
     if (!this._roles)
       return false;

@@ -7,4 +7,5 @@ export interface Gig {
     requiredSkills: string[];
     username: string;
     createdAt: Date;
+    imagePath?: string | null;
   }

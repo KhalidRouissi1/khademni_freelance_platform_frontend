@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/khademni_auth
+    username: khaled
+    password: khaled
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  main:
+    allow-circular-references: true
+
+server:
+  port: 8888
+
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+
+
+services:
+
+  postgres:
+    container_name: freelance_sql_db
+    image: postgres
+    environment:
+      POSTGRES_USER: khaled
+      POSTGRES_PASSWORD: khaled
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    restart: unless-stopped
+
+volumes:
+  postgres:

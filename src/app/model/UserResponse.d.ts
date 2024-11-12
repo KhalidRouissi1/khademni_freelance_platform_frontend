@@ -1,6 +1,5 @@
-export interface User {
+export interface UserResponse {
     id: number;
-    password: string
     username : string
     role: 'ADMIN' | 'USER';
   }

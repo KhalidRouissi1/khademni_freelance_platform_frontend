@@ -1,9 +1,11 @@
+import { UserResponse } from './../../model/UserResponse.d';
 import { Component, OnInit } from '@angular/core';
 import { Gig } from '../../model/Gig';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GigService } from '../../service/gig.service';
+import { User } from '../../model/User';
 
 @Component({
   selector: 'app-owner',
@@ -17,7 +19,6 @@ export class OwnerComponent implements OnInit {
   showModal = false;
   isEditing = false;
   skillsInput = '';
-  
   editingGig: Gig = {
     id: 0,
     title: '',
@@ -25,9 +26,10 @@ export class OwnerComponent implements OnInit {
     requiredSkills: [],
     maxPrice: 0,
     minPrice: 0,
-    creatorEmail: '',
+    username: '',
     createdAt: new Date()
   };
+  currentUser:  UserResponse| null = null;
 
   constructor(
     private authService: AuthService,
@@ -35,18 +37,19 @@ export class OwnerComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      this.loadGigs(currentUser.email);
-    }
-  }
-
-  loadGigs(email: string) {
-    this.gigService.getGigsByCreator(email).subscribe(gigs => {
-      this.myGigs = gigs;
+    this.authService.currentUser$.subscribe((user) => {
+      this.currentUser = user;
+      if (this.currentUser) {
+        this.loadGigs(this.currentUser.username);
+      }
     });
   }
 
+  loadGigs(userId: string) {
+    this.gigService.getGigsByCreator(userId).subscribe((gigs) => {
+      this.myGigs = gigs;
+    });
+  }
   openCreateModal() {
     this.isEditing = false;
     this.editingGig = {
@@ -56,7 +59,7 @@ export class OwnerComponent implements OnInit {
       requiredSkills: [],
       maxPrice: 0,
       minPrice: 0,
-      creatorEmail: '',
+      username: '',
       createdAt: new Date()
     };
     this.skillsInput = '';
@@ -79,14 +82,16 @@ export class OwnerComponent implements OnInit {
     event.preventDefault();
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) return;
-
+  
     this.editingGig.requiredSkills = this.skillsInput
       .split(',')
       .map(skill => skill.trim())
       .filter(skill => skill.length > 0);
-
+  
+    // Set the creatorUsername regardless of whether editing or creating
+    this.editingGig.username = currentUser.username;
+  
     if (!this.isEditing) {
-      this.editingGig.creatorEmail = currentUser.email;
       this.gigService.createGig(this.editingGig).subscribe(createdGig => {
         this.myGigs = [...this.myGigs, createdGig];
         this.closeModal();
@@ -100,7 +105,6 @@ export class OwnerComponent implements OnInit {
       });
     }
   }
-
   deleteGig(id: number) {
     if (confirm('Are you sure you want to delete this gig?')) {
       this.gigService.deleteGig(id).subscribe(() => {

@@ -5,6 +5,6 @@ export interface Gig {
     minPrice: number;
     maxPrice: number;
     requiredSkills: string[];
-    creatorEmail: string;
+    username: string;
     createdAt: Date;
   }

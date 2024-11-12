@@ -55,7 +55,6 @@ export class GigDetailsComponent implements OnInit {
 
   sendApplication(): void {
     if (this.gig && this.coverLetter && this.resumeUrl && this.projectPhotoUrl) {
-      
       const application: Application = {
         gigId: this.gig.id,
         freelancerId: this.authService.getCurrentUser()?.id as number,
@@ -63,9 +62,9 @@ export class GigDetailsComponent implements OnInit {
         resumeUrl: this.resumeUrl,
         projectPhotoUrl: this.projectPhotoUrl,
       };
-  
+
       console.log('Sending application:', application); // Log the data to check its structure
-  
+
       // Send the application
       this.applicationService.sendApplication(application).subscribe({
         next: () => {
@@ -80,5 +79,4 @@ export class GigDetailsComponent implements OnInit {
       alert('Please fill in all the fields before submitting.');
     }
   }
-  
 }

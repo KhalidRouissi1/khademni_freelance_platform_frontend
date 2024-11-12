@@ -2,15 +2,16 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
 import { FormsModule } from '@angular/forms';
+import { UserLoginRequest } from '../../model/UserLoginRequest';
 
 @Component({
-  standalone:true,
-  imports:[FormsModule],
+  standalone: true,
+  imports: [FormsModule],
   selector: 'app-login',
   templateUrl: "./login.component.html"
 })
 export class LoginComponent {
-  email: string = '';
+  username: string = '';
   password: string = '';
   error: string = '';
 
@@ -18,18 +19,21 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router
   ) {}
-
+  
   onSubmit(): void {
-    if (this.authService.login(this.email, this.password)) {
-      const currentUser = this.authService.getCurrentUser();
-      console.log(currentUser)
-      if (!this.authService.isOwner()) {
-        this.router.navigate(['/gigs']);
-      } else {
-        this.router.navigate(['/ownerspace']);
+    const user: UserLoginRequest = { username: this.username, password: this.password };
+    this.authService.login(user).subscribe(
+      () => {
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser && currentUser.role === 'ADMIN') {
+          this.router.navigate(['/ownerspace']);
+        } else {
+          this.router.navigate(['/gigs']);
+        }
+      },
+      (error) => {
+        this.error = 'Invalid credentials';
       }
-    } else {
-      this.error = 'Invalid credentials';
-    }
+    );
   }
 }

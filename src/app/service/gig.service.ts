@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Gig } from '../model/Gig';
 import { AuthService } from './auth.service';
+import { Image } from '../model/Image';
 
 @Injectable({
   providedIn: 'root'
@@ -14,18 +15,22 @@ export class GigService {
     private http: HttpClient,
     private authService: AuthService
   ) {}
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    console.log(token)
 
-    return new HttpHeaders({
-      'Authorization': "Bearer "+token,
-      'Content-Type': 'application/json'
-    });
+  private getAuthHeaders(isFormData: boolean = false): HttpHeaders {
+    const token = this.authService.getToken();
+    const headers: any = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+    
+    return new HttpHeaders(headers);
   }
 
-  getAllGigs(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/all`, {
+  getAllGigs(): Observable<Gig[]> {
+    return this.http.get<Gig[]>(`${this.apiUrl}/all`, {
       headers: this.getAuthHeaders()
     });
   }
@@ -42,31 +47,28 @@ export class GigService {
     });
   }
 
-  createGig(newGig: Gig): Observable<Gig> {
-    return this.http.post<Gig>(`${this.apiUrl}/addgig`, newGig, {
+  createGig(gig: Gig): Observable<Gig> {
+    const url = `${this.apiUrl}/addgig`;
+    return this.http.post<Gig>(url, gig, {
       headers: this.getAuthHeaders()
     });
   }
 
-  searchGigs(title: string, minPrice: number, maxPrice: number, skills: string[]): Observable<any> {
-    let params = new HttpParams()
-      .set('title', title)
-      .set('minPrice', minPrice.toString())
-      .set('maxPrice', maxPrice.toString());
+  updateGig(gig: Gig, image: File | null): Observable<Gig> {
+    const formData = new FormData();
+    formData.append('title', gig.title);
+    formData.append('description', gig.description);
+    formData.append('minPrice', gig.minPrice.toString());
+    formData.append('maxPrice', gig.maxPrice.toString());
+    formData.append('username', gig.username);
+    formData.append('requiredSkills', JSON.stringify(gig.requiredSkills));
     
-    skills.forEach(skill => {
-      params = params.append('skills', skill);
-    });
+    if (image) {
+      formData.append('image', image);
+    }
 
-    return this.http.get<any>(`${this.apiUrl}/gigs/search`, {
-      headers: this.getAuthHeaders(),
-      params
-    });
-  }
-
-  updateGig(gig: Gig): Observable<Gig> {
-    return this.http.put<Gig>(`${this.apiUrl}/gigs/${gig.id}`, gig, {
-      headers: this.getAuthHeaders()
+    return this.http.put<Gig>(`${this.apiUrl}/gigs/${gig.id}`, formData, {
+      headers: this.getAuthHeaders(true)
     });
   }
 
@@ -75,4 +77,18 @@ export class GigService {
       headers: this.getAuthHeaders()
     });
   }
+  uploadImage(file: File, filename: string): Observable<any> {
+    const imageFormData = new FormData();
+    imageFormData.append('image', file, filename);
+    const url = `${this.apiUrl}/image/upload`;
+    return this.http.post(url, imageFormData, {
+      headers: this.getAuthHeaders(true)  
+    });
+  }
+  
+  loadImage(id: number): Observable<Image> {
+    const url = `${this.apiUrl}/image/get/info/${id}`;
+    return this.http.get<Image>(url);
+  }
+  
 }

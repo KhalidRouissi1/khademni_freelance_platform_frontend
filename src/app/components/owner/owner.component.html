@@ -15,6 +15,7 @@
       <table class="min-w-full">
         <thead class="bg-gray-50">
           <tr>
+            <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
             <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
             <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
             <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price Range</th>
@@ -24,9 +25,15 @@
         <tbody class="bg-white divide-y divide-gray-200">
           @for(gig of myGigs; track gig.id) {
             <tr>
+              <td class="px-6 py-4 w-24">
+                <img 
+                  alt="Gig image"
+                  class="h-16 w-16 object-cover rounded-md"
+                >
+              </td>
               <td class="px-6 py-4">{{ gig.title }}</td>
               <td class="px-6 py-4">{{ gig.requiredSkills.join(', ') }}</td>
-              <td class="px-6 py-4">\${{ gig.minPrice }} - \${{ gig.maxPrice }}</td>
+              <td class="px-6 py-4">${{ gig.minPrice }} - ${{ gig.maxPrice }}</td>
               <td class="px-6 py-4 space-x-2">
                 <button 
                   (click)="openEditModal(gig)"
@@ -43,7 +50,7 @@
           }
           @empty {
             <tr>
-              <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                 You haven't created any gigs yet
               </td>
             </tr>
@@ -67,6 +74,21 @@
 
           <form (submit)="submitForm($event)">
             <div class="space-y-4">
+              <!-- Image Upload -->
+              <div>
+                <div class="mt-1 flex items-center space-x-4">
+                  
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      (change)="onImageUpload($event)"
+                    >
+                  
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label class="block text-sm font-medium text-gray-700">Title</label>
                 <input 

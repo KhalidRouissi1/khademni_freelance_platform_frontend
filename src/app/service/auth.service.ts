@@ -24,34 +24,40 @@ export class AuthService {
   private _currentUserSubject = new BehaviorSubject<UserResponse | null>(null);
   public currentUser$ = this._currentUserSubject.asObservable();
   public regitredUser : UserClass = new UserClass();
+
   constructor(
     private router: Router,
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.loadToken();
+    this.loadUserData(); // Load user data after loading token
   }
 
-
+  // Setter and Getter for registered user
   setRegistredUser(user : UserClass){
-    this.regitredUser=user;
-    }
-    getRegistredUser(){
-    return this.regitredUser;
-    }
-
-  register(user: UserRegistrationRequest){
-      return this.http.post<User>(this.apiURL+'/register',user,{observe:'response'})
+    this.regitredUser = user;
   }
-  validateEmail(code : string){
-    return this.http.get<User>(this.apiURL+'/verifyEmail/'+code);
-    }
+
+  getRegistredUser(){
+    return this.regitredUser;
+  }
+
+  // Registration and login methods
+  register(user: UserRegistrationRequest){
+      return this.http.post<User>(this.apiURL + '/register', user, { observe: 'response' });
+  }
+
+  validateEmail(code: string){
+    return this.http.get<User>(this.apiURL + '/verifyEmail/' + code);
+  }
+
 
   login(user: UserLoginRequest): Observable<any> {
     return this.http.post<UserLoginRequest>(this.apiURL + '/login', user, { observe: 'response' }).pipe(
       switchMap((response) => {
         this.saveToken(response.headers.get('Authorization')!);
-        return this.getUser();
+        return this.getUser(); // Get the logged-in user data
       }),
       catchError((error) => {
         this._currentUserSubject.next(null);
@@ -60,6 +66,62 @@ export class AuthService {
     );
   }
 
+  // Load token from localStorage on initialization
+  loadToken() {
+    if (isPlatformBrowser(this.platformId)) {
+      this._token = localStorage.getItem('jwt') || '';
+    }
+    this.decodeJWT();
+    this._isLoggedIn = !!this._token;
+  }
+
+  // New method to load user data if token is valid
+  private loadUserData() {
+    if (this.isLoggedIn) {
+      this.getUser().subscribe(user => {
+        if (user) {
+          this._currentUserSubject.next(user);
+        } else {
+          this._currentUserSubject.next(null);
+          this.logout();
+        }
+      });
+    }
+  }
+
+  // Decode the JWT and extract roles and loggedUser info
+  decodeJWT() {
+    if (!this._token || this._token === '') {
+      this._roles = [];
+      this._loggedUser = '';
+      return;
+    }
+
+    try {
+      const decodedToken = this.helper.decodeToken(this._token);
+      this._roles = decodedToken.roles;
+      this._loggedUser = decodedToken.sub;
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+      this._roles = [];
+      this._loggedUser = '';
+    }
+  }
+
+  // // Fetch user data using the token
+  // getUser(): Observable<UserResponse | null> {
+  //   if (this.isLoggedIn) {
+  //     const user: UserResponse = {
+  //       id: parseInt(this.loggedUser),
+  //       username: this.loggedUser,
+  //       role: this.roles.includes('ADMIN') ? 'ADMIN' : 'USER'
+  //     };
+  //     this._currentUserSubject.next(user);
+  //     return of(user);  // Simulating API call response
+  //   }
+  //   return of(null);
+  // }
+
   getUser(): Observable<UserResponse | null> {
     if (this.isLoggedIn) {
       const user: UserResponse = {
@@ -67,14 +129,13 @@ export class AuthService {
         username: this.loggedUser,
         role: this.roles.includes('ADMIN') ? 'ADMIN' : 'USER'
       };
-      console.log(user.role)
-      this._currentUserSubject.next(user);
-      return this.currentUser$;
+      this._currentUserSubject.next(user);  // Update the current user subject
+      return of(user);
     }
-    this._currentUserSubject.next(null);
-    return this.currentUser$;
+    return of(null);
   }
 
+  // Other supporting methods
   getCurrentUser(): UserResponse | null {
     return this._currentUserSubject.value;
   }
@@ -95,28 +156,12 @@ export class AuthService {
     return this._token;
   }
 
-  decodeJWT() {
-    if (!this._token || this._token === '') {
-      this._roles = [];
-      this._loggedUser = '';
-      return;
-    }
-
-    try {
-      const decodedToken = this.helper.decodeToken(this._token);
-      this._roles = decodedToken.roles;
-      this._loggedUser = decodedToken.sub;
-    } catch (error) {
-      console.error('Error decoding JWT:', error);
-      this._roles = [];
-      this._loggedUser = '';
-    }
+  isAdmin(): boolean {
+    return this._roles?.includes('ADMIN') || false;
   }
 
-  isAdmin(): boolean {
-    if (!this._roles)
-      return false;
-    return (this._roles.indexOf('ADMIN') > -1);
+  isUser(): boolean {
+    return this._roles?.includes('USER') || false;
   }
 
   logout() {
@@ -129,13 +174,6 @@ export class AuthService {
     }
     this._currentUserSubject.next(null);
     this.router.navigate(['/login']);
-  }
-
-  loadToken() {
-    if (isPlatformBrowser(this.platformId)) {
-      this._token = localStorage.getItem('jwt') || '';
-    }
-    this.decodeJWT();
   }
 
   isTokenExpired(): boolean {

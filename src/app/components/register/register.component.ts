@@ -24,42 +24,34 @@ export class RegisterComponent {
   ) {}
 
   onSubmit(): void {
-    // Validate if password and confirm password match
     if (this.password !== this.confirmPassword) {
       this.error = 'Passwords do not match';
       return;
     }
 
-    // Create the request object for registration
     const registrationRequest: UserRegistrationRequest = {
       username: this.username,
       email: this.email,
       password: this.password
     };
 
-    // Temporary user object to store for verification
     const registeredUser: UserClass = {
       id: 0,
       username: this.username,
       email: this.email,
       password: this.password,
-      roles: [{ role_id: 1, role: 'USER' }]  // Assuming a default role here
+      roles: [{ role_id: 1, role: 'USER' }]  
     };
     
-    // Attempt registration
     this.authService.register(registrationRequest).subscribe({
       next: () => {
-        // Save registered user data for later verification
         this.authService.setRegistredUser(registeredUser);
 
-        // Navigate to email verification page
         this.router.navigate(['/verifemail']);
 
-        // Show success message
         alert('Registration successful');
       },
       error: (err: any) => {
-        // Display appropriate error message
         if (err.status === 400 || err.status === 409) {
           this.error = err.error.message;
         } else {

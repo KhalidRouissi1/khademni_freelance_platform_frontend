@@ -40,6 +40,7 @@ export class GigListComponent implements OnInit {
 
   loadGigs(): void {
     this.gigService.getAllGigs().subscribe(response => {
+      console.log(response)
       this.allGigs = response;
       this.applyFilters();
     });

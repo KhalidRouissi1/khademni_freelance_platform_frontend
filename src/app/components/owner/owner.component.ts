@@ -1,24 +1,23 @@
-import { UserResponse } from './../../model/UserResponse.d';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Gig } from '../../model/Gig';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GigService } from '../../service/gig.service';
-import { User } from '../../model/User';
+import { UserResponse } from '../../model/UserResponse';
 
 @Component({
   selector: 'app-owner',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './owner.component.html',
-  styleUrl: './owner.component.css'
+  templateUrl: './owner.component.html'
 })
 export class OwnerComponent implements OnInit {
   myGigs: Gig[] = [];
   showModal = false;
   isEditing = false;
   skillsInput = '';
+  
   editingGig: Gig = {
     id: 0,
     title: '',
@@ -27,9 +26,14 @@ export class OwnerComponent implements OnInit {
     maxPrice: 0,
     minPrice: 0,
     username: '',
-    createdAt: new Date()
+    createdAt: new Date(),
   };
-  currentUser:  UserResponse| null = null;
+  uploadedImage!: File;
+  imagePath: any;
+  
+  currentUser: UserResponse | null = null;
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
 
   constructor(
     private authService: AuthService,
@@ -50,6 +54,7 @@ export class OwnerComponent implements OnInit {
       this.myGigs = gigs;
     });
   }
+
   openCreateModal() {
     this.isEditing = false;
     this.editingGig = {
@@ -60,7 +65,7 @@ export class OwnerComponent implements OnInit {
       maxPrice: 0,
       minPrice: 0,
       username: '',
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     this.skillsInput = '';
     this.showModal = true;
@@ -80,36 +85,57 @@ export class OwnerComponent implements OnInit {
 
   submitForm(event: Event) {
     event.preventDefault();
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
+    console.log(this.currentUser)
+    if (!this.currentUser) return;
   
+    // Ensure skills are parsed correctly
     this.editingGig.requiredSkills = this.skillsInput
-      .split(',')
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 0);
+     .split(',')
+     .map(skill => skill.trim())
+     .filter(skill => skill.length > 0);
+    console.log('Skills:', this.editingGig.requiredSkills);
   
-    // Set the creatorUsername regardless of whether editing or creating
-    this.editingGig.username = currentUser.username;
+    // Add the current username to the gig
+    this.editingGig.username = this.currentUser.username;
   
-    if (!this.isEditing) {
-      this.gigService.createGig(this.editingGig).subscribe(createdGig => {
-        this.myGigs = [...this.myGigs, createdGig];
+    // Log uploaded image and gig data
+    console.log('Gig data:', this.editingGig);
+    console.log('Uploaded Image:', this.uploadedImage);
+  
+    // Send the image separately
+    this.gigService.uploadImage(this.uploadedImage, this.uploadedImage.name).subscribe((imageResponse) => {
+      console.log('Image uploaded:', imageResponse);
+  
+      // Send the gig data without the image
+      this.gigService.createGig(this.editingGig).subscribe((newGig) => {
+        this.myGigs.push(newGig);
         this.closeModal();
-      });
-    } else {
-      this.gigService.updateGig(this.editingGig).subscribe(updatedGig => {
-        this.myGigs = this.myGigs.map(gig => 
-          gig.id === updatedGig.id ? updatedGig : gig
-        );
-        this.closeModal();
-      });
-    }
+      }, (error) => console.error('Error creating gig:', error));
+    }, (error) => console.error('Error uploading image:', error));
   }
+  
   deleteGig(id: number) {
     if (confirm('Are you sure you want to delete this gig?')) {
       this.gigService.deleteGig(id).subscribe(() => {
-        this.myGigs = this.myGigs.filter(gig => gig.id !== id);
+        this.myGigs = this.myGigs.filter((gig) => gig.id !== id);
       });
     }
   }
+
+  onImageUpload(event: any) {
+    this.uploadedImage = event.target.files[0];
+    const reader = new FileReader();
+    reader.readAsDataURL(this.uploadedImage);
+    console.log(reader)
+
+    reader.onload = (_event) => {
+      this.imagePath = reader.result;
+    };
+
+  }
+  // In your component
+previewImage(file: File): string {
+  return URL.createObjectURL(file);
+}
+
 }

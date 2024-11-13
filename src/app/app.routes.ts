@@ -6,6 +6,7 @@ import { OwnerComponent } from './components/owner/owner.component';
 import { GigDetailsComponent } from './components/gig-details/gig-details.component';
 import { RegisterComponent } from './components/register/register.component';
 import { VerifEmailComponent } from './components/verif-email/verif-email.component';
+import { ForbiddenComponent } from './components/forbidden/forbidden.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -14,5 +15,6 @@ export const routes: Routes = [
   { path: 'gigs', component: GigListComponent, canActivate: [AuthGuard] },
   { path: 'ownerspace', component: OwnerComponent, canActivate: [AuthGuard] },
   { path: 'verifemail', component: VerifEmailComponent },
+  { path: 'forbidden', component: ForbiddenComponent, canActivate: [AuthGuard] },
   { path: 'gigs/details/:id', component: GigDetailsComponent, canActivate: [AuthGuard] }
 ];
